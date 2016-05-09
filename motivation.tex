@@ -1,0 +1,97 @@
+\section{Motivation}
+\label{sec:motivation}
+
+This work is motivated by experiences with two application domains:
+scientific computing and software-as-a-service (SaaS). In both domains, users
+write programs that interact with data in multiple existing services while
+keeping them compatible with service changes.
+
+In scientific computing, sites generate and host petabytes of data and make it
+available via multiple legacy storage systems.  These systems are organized
+into inter-site federations to facilitate collaboration, but each site defines
+its own curation policies in terms their storage systems' behaviors. Due
+to the sensitivity and quantity of data, it is undesirable to host data with 3rd
+parties like commodity cloud storage. Nevertheless, the data must be transferred
+between sites, since experiments rely on non-outsourceable resources like
+supercomputers.
+
+Scientific workflows implement cross-component storage features of their own in
+order to overcome differences in services and sites.  For example, a
+gene-sequence alignment job must know how to avoid stale data, and how to ensure
+that confidential results will not be readable to unauthorized off-site
+requestors. This is unfortunate, because entangling the science and storage
+logic makes the workflow vulnerable to service changes.  However, there is no
+clear alternative, since sites and storage services do not have insights into
+the workflow's intentions.
+
+Some common storage functionality can be implemented in a ``storage
+kernel'' for intra-site workflows using archival systems like iRODS, but no
+coherent solution exists for doing so uniformly across sites. Science clouds
+attempt to do so, but they only defer the problem to workflows that run across
+multiple science clouds.
+
+A similar entanglement problem exists for programs that access data in multiple
+SaaS providers.  For example, programs Slack and Onename that read user data
+from SaaS providers must re-implement their access control logic to keep user
+data secure.  Programs like Stripple that synchronize data across providers
+must re-try failed uploads and deletions to preserve replica consistency. In
+addition, SaaS API changes break these applications, and thus impose a constant
+maintenance burden on their developers.
+
+This status quo is sufficiently unfavorable that an ecosystem of decentralized,
+blockchain-powered applications (dapps) is coming online to compete with SaaS
+providers. Their main selling point is that they partially overcome these
+problems by treating state on a user's devices as authoritative, instead of
+state spread across multiple data silos. However, handling storage concerns
+like data persistence, access control, and authentication is still left to
+users.
+
+\subsection{Contributions}
+
+Both spaces suffer from the same underlying problem. Because storage features
+are tied to services, and because there is no ``kernel'' layer for
+wide-area applications, each program must independently implement any storage
+features not directly offered by the service.  This leads to duplication of
+effort and bugs, and requires each program to be patched to overcome changes in
+a single service.
+
+Our proposed ``storage kernel'' solves this problem by implementing
+storage features as a set of execution contexts that work together to run an 
+application-specified global I/O coordination algorithm.  This gives
+applications a stable but
+custom storage API while isolating them from service changes.  A
+developer's task would no longer be to patch each application to work with a
+service, but would instead be to maintain a ``driver'' to get a service to
+work with many applications.
+
+The main contribution of this work is to construct this
+wide-area storage kernel in a cost-effective manner.  We show how to
+combine existing services while minimizing the amount of work
+a developer must do to support a new feature or provider.  We also show
+how to operate this layer with minimal administrative overhead.
+
+By doing so, we offer developers and users a layer that is:
+
+\textbf{Programmabe}. The kernel runs user-given storage features for the user's
+I/O flows.  The implementation exists and runs independently from both
+services and applications.
+
+\textbf{Dynamic}. The kernel is re-programmable at
+runtime, and changes take effect atomically with respect to the application.
+
+\textbf{Extensible}.  Each user may independently control how I/O flows are
+processed for their data.
+
+\textbf{Uniform}.  The kernel is scalable and available to all
+application endpoints. It spans multiple administrative and trust
+domains.
+
+\textbf{Universal}.  Storage functionality may be stateful and
+Turing-complete, and may run asynchronously from the application.
+
+Syndicate is a proof-of-concept implementation of this kernel. It not only
+allows us to combine existing storage services, but also enables storage
+functionality to decompose into orthogonal, reusable features that
+functionally compose in a pipeline fashion (akin to how UNIX programs
+compose).  New functionality can reuse existing functionality, and the
+cost adding a new functionality is amortized across all dependent applications.
