@@ -1,7 +1,7 @@
 \section{Motivation}
 \label{sec:motivation}
 
-The need for a wide-area storage kernel motivated by experiences with two application domains:
+The need for a wide-area storage kernel is motivated by experience with two application domains:
 scientific computing and software-as-a-service (SaaS). In both domains, users
 write programs that interact with data in multiple existing services while
 keeping them compatible with service changes.  No layer of indirection exists
@@ -17,6 +17,9 @@ to the sensitivity and quantity of data, it is undesirable to host data with 3rd
 parties like commodity cloud storage. Nevertheless, the data must be transferred
 between sites, since experiments rely on non-outsourceable resources like
 supercomputers.
+%it's not clear the reasons you give are why data isn't hosted in the cloud
+%the economics make it easier to buy hardware than pay a provider (NSF)
+%not that you want to go down this rat hole.
 
 Scientific workflows in systems like Agave~\cite{agave} and iPlant~\cite{iplant}
 implement cross-component storage features of their own in
@@ -43,7 +46,7 @@ SaaS API changes are a looming threat to these applications' stability, and
 changes when they do happen impose a constant
 maintenance burden on their developers.
 
-This status quo is sufficiently unfavorable that an ecosystem of decentralized,
+The status quo is sufficiently unfavorable that an ecosystem of decentralized,
 blockchain-powered applications (``dapps'') is coming online to compete with SaaS
 providers. Their main selling point is that they partially overcome these
 problems by treating state on a user's devices as authoritative, instead of
@@ -65,8 +68,8 @@ storage features as a set of execution contexts that work together to run an
 application-specified storage features independently of providers.  This gives
 applications a stable but
 custom storage API while isolating them from service changes.  A
-developer's task would no longer be to patch each application to work with a
-service, but would instead be to maintain a ``driver'' to get a service to
+developer's task is no longer to patch each application to work with a
+service, but is instead to maintain a ``driver'' to get a service to
 work with many applications.
 
 The main contribution of this work is to construct this
