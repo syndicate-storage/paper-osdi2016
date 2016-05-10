@@ -57,16 +57,27 @@ operating systems.  Like Amoeba~\cite{amoeba}, Sprite~\cite{sprite}, and
 MOSIX~\cite{mosix}, Syndicate manages stateful code
 execution across a network.  However Syndicate takes a complementary approach to
 these systems for distributing load and masking faults:  instead of instantiating remote processes
-or migrating them between hosts, it re-distributes flow routes across unmoving
+and migrating them between hosts, it re-distributes flow routes across unmoving
 processes.  Users may manually stop a remote process and start it up somewhere
 else, and Syndicate ensures that doing so does not disrupt running I/O flows.
 
-Our prototype implementation is inspired from Plan
-9~\cite{plan9} in that it uses a filesystem abstraction for representing
-application state, and relies on assigning administrative control over files to
-enforce domain-specific security.  However, the filesystem abstraction is an
-implementation detail, not the end itself--Syndicate can be extended to
-implement other interfaces, such as tables and relations.
+Our prototype implementation is inspired from both Plan
+9~\cite{plan9} and contemporary RESTful Web services.
+It uses filesystem abstraction for representing
+application state, and enforces administrative control of files' states by
+ensuring that only the users decide which hosts process I/O on them.
+Like RESTful services, the common-case method for accessing another user's files
+is to load the remote user's designated storage logic into a local execution
+context, akin to loading Javascript programs from Web servers.
+
+However, the filesystem abstraction is an
+implementation detail, not the end itself--Syndicate is designed to be able to
+implement other interfaces.  In addition, Syndicate overcomes many
+limitations in conventional Web services, such as including
+first-class support for querying files by directory or attribute, allowing
+file owners to control which hosts process I/O on them, and allowing users to
+decide where and how their file's data gets hosted independently of the
+application servers.
 
 Finally, systems like Blockstack~\cite{blockstack} and Tierion~\cite{tierion}
 that store data in untrusted providers by leveraging a public blockchain for
