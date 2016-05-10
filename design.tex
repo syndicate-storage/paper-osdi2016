@@ -10,7 +10,7 @@ multiple services, and its metadata and directory hierarchy is cached in a
 scalable but untrusted PaaS provider.
 
 In Waskern, a volume is a unit trust domain, and a user is a unit
-administrative domain that encompases one or more devices.  A volume has an
+administrative domain that encompasses one or more devices.  A volume has an
 owner who has volume-level control over who may read and write files, and who
 may process I/O flows. Volume users trust the volume owner to make appropriate
 volume-wide decisions, but retain fine-grained control over who may read, write,
@@ -79,7 +79,7 @@ in reaction to application-initiated reads and writes:
 
 \textbf{Discover}: Acknowledges a manifest's publication.
 
-\textbf{Pull}: Fetches the new manifest's data and the new blocks.
+\textbf{Pull}: Fetches the new manifest's data and blocks.
 
 A user can implement any consistency model by controlling the details of
 \texttt{publish} and \texttt{discover}, and can implement any durability model
@@ -160,7 +160,7 @@ Facebook data to make it available.
 \subsection{Coordination}
 
 Gateways coordinate I/O flows via a stateful control-plane, through which
-Waskern achieves its programmability, dyanmicity, and extensibility
+Waskern achieves its programmability, dynamicity, and extensibility
 properties. The control-plane state for each gateway includes its I/O logic,
 owner, public key, host, port, and volume-given capabilities, as well as the
 list of users and gateways that make up a volume. Waskern allows these fields
@@ -279,7 +279,7 @@ with any identity system.
 This approach to key distribution ensures that each gateway receives the same
 set of user public keys without introducing central points of trust. This is
 because practical self-sovereign identity systems rely on proof-of-work
-blockchains to construct a tamper-resistent log of key updates for a particular
+blockchains to construct a tamper-resistant log of key updates for a particular
 name.
 
 The security of Waskern is thus underpinned by the practical difficulty of attacking a
@@ -327,7 +327,7 @@ no duplicate files. In both cases, Alice and Bob both minimize the number of
 gateways their UGs need to contact to process I/O flows, and separate orthogonal
 storage concerns into reusable components.
 
-\subsection{Fault Tolernace}
+\subsection{Fault Tolerance}
 
 Beyond assuming that public-key cryptography is infeasible to crack, we assume
 that the self-sovereign identity system is available, and that gateways exhibit
@@ -382,7 +382,7 @@ writes like these, irrespective of it's use in Waskern.
 
 Waskern helps detect potential divergences like this via an asynchronous heartbeat
 gossip protocol.  If a gateway does not receive a fresh heartbeat for another gateway after
-a timeout, it assumes that it is unavailable and acts accordintly.
+a timeout, it assumes that it is unavailable and acts accordingly.
 
 The UG offers users a
 \texttt{chcoord()} method on its control plane to allow the user or application

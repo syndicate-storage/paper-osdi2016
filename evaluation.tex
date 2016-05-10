@@ -1,24 +1,26 @@
 \section{Evaluation}
+\label{sec:evaluation}
 
 A storage kernel is considered effective if it can do three things.  It must
-run applications that treat users as the authoritative source for their state and identity,
+run applications that treat users as the authoritative sources for their state and identity,
 it must impose minimal data-plane performance overhead, and it must offer an expressive way to
 encode user-specific storage features.
 
-A key usefulness metric is whether or not the user can deploy the application
-without using application servers, and without having to pay for service for
-personal use.  This significantly lowers the barriers-to-entry for both using and
-developing new applications.
+A key usefulness criterion is whether or not the user can deploy the
+application with free cloud services.  Doing so significantly lowers the
+barriers-to-entry for both using and developing new applications.  As such, we
+run our evaluation using only freely-available services to simulate this common
+case.
 
 \subsection{Non-trivial Applications}
 
-To validate Waskern's userfulness, we used it to create three non-trival
-applications, including one that does not need servers to remain available to
-users.
+To validate the case for storage kernels, we used it to create three non-trivial
+applications, including one that does not require any service administration by
+its users.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/science-cloud}
+\includegraphics[width=0.47\textwidth]{figures/science-cloud}
 \caption{\it Application 1: scientific storage.  A computing site gives users a
    space to run publicly-routable RGs and AGs to interface with their storage
    and existing datasets, and offers them a private CDN to enhance data
@@ -43,12 +45,12 @@ The automount service and the self-sovereign identity service remove the need
 for a dedicated configuration and key server.  Both the users and service
 operators use a locally-hosted GUI tool to replicate and distribute new
 provision plans via the externally-operated identity service.  Because each host knows
-the username of its owner, its automout client automatically uses the latest
+the username of its owner, its automount client automatically uses the latest
 authentic configuration state to instantiate gateways.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/secure-mail}
+\includegraphics[width=0.47\textwidth]{figures/secure-mail}
 \caption{\it Application 2: end-to-end secure webmail. Alice and Bob store
    signed encrypted messages to one another on their own volumes, and use a
    shared self-sovereign identity service to discover each other's public keys.
@@ -73,7 +75,7 @@ Bob's keys.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/irods-hadoop}
+\includegraphics[width=0.47\textwidth]{figures/irods-hadoop}
 \caption{\it Application 3: science site integrations.  Waskern enables external
    gateways to discover files in an intra-site iRODS deployment, where the
    site's AG serves to authenticate external requests on its behalf and serve
@@ -112,35 +114,40 @@ Our performance microbenchmark was intentionally conducted using only
 freely-available Web services.  This is because we expect this to be the common
 case for many users and developers, especially when trying out new applications
 for the first time.  We ran our RG on a free-tier VM in Amazon
-AWS~\cite{amazon-aws}, we ran our MS as a free front-end service in Google
+AWS~\cite{amazonaws}, we ran our MS as a free front-end service in Google
 Appengine~\cite{google-appengine}, and we ran our UGs on local laptops behind
 NATs.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/ms-performance}
+\includegraphics[width=0.47\textwidth]{figures/ms-performance}
 \caption{\it MS performance in the free tier of Google Appengine for creating
-   files (``Publish'') and directories (``Mkdir''), and reading them
-   (``Discover''). Error bars are standard deviations.}
+   files (``Touch'') and directories (``Mkdir''), and reading them
+   (``Stat'') when compared to baseline network performance (``Ping''). 
+   Numbers are millisecond averages; error bars are standard deviations.}
 \label{fig:ms-performance}
 \end{figure}
 
 Even with these operating constraints, Waskern's performance is comparable to
 that of interacting with a Web application (Figure~\ref{fig:ms-performance}).
 Looking up MS-cached metadata
-(``Discover'') takes on average 733 milliseconds per request (n=50), caching
-file data (``Publish'') takes on average 1874 milliseconds, and making a new
+(``Stat'') takes on average 733 milliseconds per request (n=50), caching
+file data (``Touch'') takes on average 1874 milliseconds, and making a new
 directory (``Mkdir'') takes on average 2321 milliseconds.  Making directories
 requires instantiating extra indexing state within the MS, which accounts
 for extra time it takes over caching only file state.  On average, 251
 milliseconds (about 25\%) of these operations' time was spent routing the request to the Google
-Appengine process (``MS baseline''), as measured by requesting an empty HTTP 200
+Appengine process (``Ping''), as measured by requesting an empty HTTP 200
 response.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/data-performance}
-\caption{\it  }
+\includegraphics[width=0.47\textwidth]{figures/data-performance}
+\caption{\it  UG/RG performance in the free tier of Amazon AWS.  A 10-block file
+   with 10KB blocks was read and written 50 times each, using no-op storage
+   logic.  Nginx \texttt{GET}s are slower than the RG's reads, even without caching.
+   Write performance varies due to virtualized CPU and network-backed storage.
+   Numbers are millisecond averages; error bars are standard deviations.}
 \label{fig:data-performance}
 \end{figure}
 
@@ -158,15 +165,17 @@ read and completing it.  No data was cached between reads.  For writes, this is
 the time between initiating the write, and completing both the write and then
 subsequently ``\texttt{fsync()}''-ing the written chunks to the RG.
 
-Our experiment shows that the RG is comparable with interacting with an Nginx.
+This test shows that interacting with an RG is comparable with interacting with Nginx.
 Reading data is faster than GET'ing the equivalent data from Nginx,
 since the RG has a shallower and less featureful HTTP GET path (based on
-GNU libmicrohttpd~\ref{libmicrohttpd}).
-
-Write performance varied widely because the VM's vCPU runs at a lower priority
+GNU libmicrohttpd~\cite{libmicrohttpd}).  Write performance varied widely because the VM's vCPU runs at a lower priority
 than other tenant vCPUs, and its disk is based on networked-back storage with no
-SLAs.  We did not measure Nginx PUT performance using the RG's storage logic
-simply for lack of time.
+SLAs. 
+
+In their current unoptimized state, interacting with Waskern volumes deployed to
+free cloud services has comparable latency and bandwidth to interacting with a heavyweight
+Web service.  We expect performance to improve after addressing some low-hanging
+performance fruit.
 
 % [note by illyoung: The same UG logic as in the first is used but I/O interface
 % is exposed via RESTful using Node.js. Also, an application that translates

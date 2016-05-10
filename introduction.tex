@@ -51,7 +51,7 @@ but no single principal possesses the computational power required to remove it.
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/kernel}
+\includegraphics[width=0.47\textwidth]{figures/kernel}
 \caption{\it As a storage kernel, Waskern fulfills the same role for wide-area
 applications and underlying storage and identity services as an OS kernel does
    for userspace programs, storage hardware, and access control frameworks.}
@@ -77,7 +77,7 @@ kernel-like functionality internally (Section~\ref{sec:motivation}), which motiv
 explore designing the storage kernel up front.
 
 State-of-the-art systems like Onename~\cite{onename},
-libcloud~\cite{libcloud}, and Infinit~\cite{infinite} come close to this
+libcloud~\cite{libcloud}, and Infinit~\cite{infinit} come close to this
 end by implementing a service ``driver'' layer to
 store data across multiple storage providers.  However, this is not
 sufficient to implement applications with non-trivial storage requirements,
@@ -110,7 +110,7 @@ actions on its own.
 
 \begin{figure}[t!]
 \centering
-\includegraphics[width=0.5\textwidth]{figures/execution-contexts}
+\includegraphics[width=0.47\textwidth]{figures/execution-contexts}
 \caption{\it Alice's I/O flows pass through
    multiple exection contexts (ECs) in multiple services before reaching Bob.  Each
    EC runs its owners' storage logic to process the flow.  By
