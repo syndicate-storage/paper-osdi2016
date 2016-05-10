@@ -31,6 +31,7 @@ application implements all of the data proccessing and access logic, a user can
 only interact with their data if the application is available and permits it.  This puts users at
 the mercy of developers, and makes developers liable for securely mediating all access
 to all user data.
+%developers? maybe you mean service providers?
 
 The rise of two new technologies enables a solution to these problems.  First, the
 ubiquitous availability of \textit{cheap personal cloud storage} gives
@@ -132,9 +133,9 @@ end-to-end authenticity and correctness in the face of system churn and service
 misbehavior.  Its key novelty is a control-plane protocol
 that leverages a self-sovereign identity system to enable gateways to coordinate in
 the presence of untrusted networks and services.  By doing so, Syndicate allows
-storage programs to compose in a UNIX-y pipeline-like fashion across the wide-area,
+storage programs to compose in a UNIX-like pipeline across the wide-area,
 enabling users to synthesize complex storage features from simple
-orthogonal storage programs on top of any storage providers.
+orthogonal storage programs on top of one or more storage providers.
 
 This paper is organized as follows.  In Section~\ref{sec:related-work}, we
 provide more background on blockchains and other state-of-the-art kernel-like systems upon
