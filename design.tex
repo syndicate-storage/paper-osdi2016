@@ -30,7 +30,7 @@ index publicly-available data to enable data discovery.}
 \end{figure}
 
 This organization offers a simple, powerful, and cost-effective way to build multi-user
-applications. For example, consider a Syndicate-powered social media competitor
+applications. For example, consider a Syndicate-powered social media alternative
 to Facebook. To use the application, Alice and Bob each create a volume for
 hosting their social data, and they give the application read-only access. Users
 make things like photos and posts available by writing them to their volumes,
@@ -152,12 +152,15 @@ and the application.  To do so, he deploys a publicly-routable AG in an IaaS
 provider to map the data as a read-only directory tree. This way, Alice can
 read it without interacting with Facebook, and Bob does not need to export his
 Facebook data to make it available.
+%I'm a little worried that also using the Facebook example here might
+%give the wrong impression that everything is pairwise (between all pairs
+%of Bob and Alice.
 
 \subsection{Coordination}
 
 Gateways coordinate I/O flows via a stateful control-plane, through which
 Syndicate achieves its programmability, dyanmicity, and extensibility
-properties. The control-plane state for each gateway ncludes its I/O logic,
+properties. The control-plane state for each gateway includes its I/O logic,
 owner, public key, host, port, and volume-given capabilities, as well as the
 list of users and gateways that make up a volume. Syndicate allows these fields
 to be set at runtime, and ensures that a user's or volume owner's state
@@ -374,7 +377,7 @@ write-processing when less than a majority of gateways are available.
 This means that the consistency model already defines a way to resolve divergent
 writes like these, irrespective of it's use in Syndicate.
 
-Syndicate help detects potential divergences like this via an asynchronous heartbeat
+Syndicate helps detect potential divergences like this via an asynchronous heartbeat
 gossip protocol.  If a gateway does not receive a fresh heartbeat for another gateway after
 a timeout, it assumes that it is unavailable and acts accordintly.
 
