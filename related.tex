@@ -1,2 +1,78 @@
 \section{Related Work}
 \label{sec:related-work}
+
+Syndicate is built from a synthesis of ideas in networked operating systems, blockchains,
+software-defined networking, software-define storage, self-sovereign
+identity systems, and policy-driven archival systems.  Like SDS and SDN
+systems, Syndicate provide a high-level programming model that lets users
+define custom data-plane behaviors at multiple implementation points in a
+network.  However, it differs from
+state-of-the-art SDS and SDN systems in two fundamental ways.
+
+First, Syndicate spans \textit{multiple} administrative domains,
+where each domain maintains the authoritative state
+of its data and independently grants limited access permissions to 
+other domains.  Networks and storage providers are not trusted, and the
+authoritative view of the system configuration is backed by a PoW blockchain that is not
+controlled by a single entity.  This is the
+opposite trust model put forth by current SDN and SDS systems like
+Andromeda~\cite{andromeda} and IOFlow~\cite{ioflow},
+where there is a single, large, trusted administrative domain (a set of datacenters)
+that includes private storage,
+networks, and hypervisors, but not the data endpoints (tenant VMs and clients).
+
+Second, Syndicate's programming model is inspired by
+by the UNIX programming model, where complex flow processing is implemented by
+composing simple storage programs into a pipeline (possibly spanning multiple
+administrative domains).
+This is a significant departure from state-of-the-art systems
+like Frenetic~\cite{frenetic}, Pyretic~\cite{pyretic}, and other
+OpenFlow~\cite{openflow}-based SDN systems, where data-plane programs are written in a top-down
+manner and mapped into data plane switches by a controller.  This model was chosen
+as a three-way compromise between providing a familiar programming model, promoting code-reuse,
+and giving each administrative domain control over what code runs on
+its devices.
+
+The reason we characterize Syndicate as a kernel, and not as a storage mechanism
+that combines existing services, is because it is fundamentally a multi-user system where
+data and ownership are intractably linked across services.
+This means our design requires the system to track and enforce access controls
+and authentication, which is only possible if the system is aware of its users'
+identities.  This is in contrast to systems like libcloud~\cite{libcloud} and
+MetaSync~\cite{metasync}, which do not address sharing data between users.
+
+Syndicate is not the only system that qualifies as a ``storage kernel''.
+Systems like iRODS~\cite{irods} have existed in some form or another for
+decades, and implement storage archive policy logic as pre- and post-processing steps
+along the data-plane.  The key differences between these systems and Syndicate is
+that the former are confined to one administrative domain (but with many users), and
+are implemented as middleware that must be manually integrated with the domain's
+legacy storage services.  By contrast, Syndicate not only crosses administrative
+domains, but also makes code-reuse and storage service isolation first-class
+design goals.  We explore how this leads to problems in
+Section~\ref{sec:motivation}.
+
+As a kernel, Syndicate draws inspiration from the body of literature on distributed
+operating systems.  Like Amoeba~\cite{amoeba}, Sprite~\cite{sprite}, and
+MOSIX~\cite{mosix}, Syndicate manages stateful code
+execution across a network.  However Syndicate takes a complementary approach to
+these systems for distributing load and masking faults:  instead of instantiating remote processes
+or migrating them between hosts, it re-distributes flow routes across unmoving
+processes.  Users may manually stop a remote process and start it up somewhere
+else, and Syndicate ensures that doing so does not disrupt running I/O flows.
+
+Our prototype implementation is inspired from Plan
+9~\cite{plan9} in that it uses a filesystem abstraction for representing
+application state, and relies on assigning administrative control over files to
+enforce domain-specific security.  However, the filesystem abstraction is an
+implementation detail, not the end itself--Syndicate can be extended to
+implement other interfaces, such as tables and relations.
+
+Finally, systems like Blockstack~\cite{blockstack} and Tierion~\cite{tierion}
+that store data in untrusted providers by leveraging a public blockchain for
+authenticity can be thought of as special cases of Syndicate.  Data records are intractably coupled
+to user identities in these systems, and they implement an untrusted storage abstraction layer over
+one or more commodity storage providers.  However, they do not offer a notion of
+user-defined asynchronous data-processing, which is necessary to implement common but
+non-trivial storage features.
+

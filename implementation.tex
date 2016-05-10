@@ -11,14 +11,16 @@ deployments.
 \subsection{Operationalization}
 
 To help manage Syndicate at scale, we built an automount service that allows
-users to specify a ``provisioning plan'' that describes which volumes are
-to be mounted on the hosts they control. The automount client manages the
+users to specify a ``provisioning plan'' that describes which volumes and
+gateways should be made available on the hosts they control. The automount client manages the
 details of provisioning, starting and stopping the correct gateways, and polling
-for changes in the provision plan.
+for changes in the provision plan.  Users have the option to manage their provisioning plans
+via an interactive program, to lower the initial learning curve.
 
-By default, the provisioning plan is hosted in the user's Blockstack-secured
-profile, which itself is replicated across the back-end storage providers of the
-user's choice.  This means that the automount client only needs to know
-the username to look up, and Blockstack guarantees that the client always
-fetches the latest authentic provisioning plan.
-
+By default, the provisioning plan is hosted in the user's self-sovereign
+identity service profile.  This means that the automount client only needs to know
+the username to look up, and guarantees that the client always
+fetches the latest authentic provisioning plan without having to trust it or its
+storage providers.  This is a key usability win, since it reduces the steps to
+deploy Syndicate to installing the relevant packages, and running the single
+command to start the automounter.

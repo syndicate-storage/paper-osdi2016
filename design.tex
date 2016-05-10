@@ -1,12 +1,13 @@
 \section{Design}
 \label{sec:design}
 
-Syndicate is a file-oriented SDNS system that lets users define how reads and
-writes affect their data.  As far as applications are concerned, Syndicate looks
+Syndicate is a file-oriented storage kernel that lets users define how reads and
+writes affect their files.  As far as applications are concerned, Syndicate looks
 and behaves like a set of globally-available volumes, each of which contains a
 mountable filesystem. Each user owns one or more volumes, and owns zero or more
-files within volumes they can access.  A volume's data is replicated across
-multiple services.
+files within volumes they can access.  A volume's file and structure is replicated across
+multiple services, and its metadata and directory hierarchy is cached in a
+scalable but untrusted PaaS provider.
 
 In Syndicate, a volume is a unit trust domain, and a user is a unit
 administrative domain that encompases one or more devices.  A volume has an
@@ -22,12 +23,13 @@ devices.
 \caption{\it
 Syndicate gives each user an ``always-on'' data store that programmatically
 hosts and manages data according to user-specified logic.  Applications no
-longer need to host data, but instead obtain read-permission from the user and
-index publicly-given data to enable discovery.}
+longer need to host data:  application clients access a user's data directly from storage,
+and application servers obtain read-permission from the user and
+index publicly-available data to enable data discovery.}
 \label{fig:app-overview}
 \end{figure}
 
-This organization offers a simple and powerful way to build multi-user
+This organization offers a simple, powerful, and cost-effective way to build multi-user
 applications. For example, consider a Syndicate-powered social media competitor
 to Facebook. To use the application, Alice and Bob each create a volume for
 hosting their social data, and they give the application read-only access. Users
@@ -90,8 +92,8 @@ can be cached anywhere to improve performance without affecting correctness.
 
 \subsection{Gateways}
 
-Syndicate represents the global I/O coordination algorithm as a set of
-programmable execution contexts called \textit{gateways}. Gateways are stand-alone,
+Syndicate grants users control over a set of execution contexts called
+\textit{gateways}. Gateways are stand-alone,
 asynchronous processors that run application-given data-plane processing logic
 on reads and writes (achieving universality). Gateways can scale down to a
 single process and scale up to multiple data centers (achieving uniformity).
@@ -103,18 +105,18 @@ providers, and is ultimately served back to users via a gateway or an
 application that access it on their behalf. As such, Syndicate defines three
 types of gateway:
 
-\textbf{Acquisition Gateway (AG)}: Maps a 3rd party dataset into a volume as a read-only
-file hierarchy. Keeps the view of the data synchronized with changes in the
-external data source. Implements only the \texttt{publish} and \texttt{pull}
+\textbf{Acquisition Gateway (AG)}: AGs map a 3rd party dataset into a volume as a read-only
+file hierarchy.  They the view of the data synchronized with changes in the
+external data source, and implement only the \texttt{publish} and \texttt{pull}
 stages.
 
-\textbf{Replica Gateway (RG)}: Uploads chunks from other gateways into existing
-storage services, and serves them back out on request. Implements only the
+\textbf{Replica Gateway (RG)}:   RGs upload chunks from other gateways into existing
+storage services, and serve them back out on request. They implement only the
 ``push'' and ``pull'' stages.
 
-\textbf{User Gateway (UG)}: Interacts with the
-application to initiate new flows. Offers a control-plane interface directly to
-users, in order for them to set new I/O logic and configuration.
+\textbf{User Gateway (UG)}: UGs interact with the
+application and user, and initiate new flows on their behalf. They offer a control-plane interface directly to
+users, in order for them to change the I/O logic and configuration at runtime.
 
 UGs implement all five I/O stages. They generate new manifests and blocks on a
 write-request from the application, push the new chunks and garbage-collect
@@ -245,57 +247,50 @@ base.
 
 Gateways can authenticate the MS-served certificate graph if they can
 authenticate each user's public key via a trusted channel. This problem is
-usually solved in related work by distributing the users' public keys to
+solved in related work by distributing the users' public keys to
 each host out-of-band, and having gateways trust the keys by fiat. However, this
 is a manual, tedious process that is hard to scale, since it introduces a
 central point of trust (like a sysadmin) and it leaves key revocation and
 key-regeneration to users.
 
-
-Syndicate addresses this problem by distributing a list of usernames to each
-gateway, and leveraging a key-distribution mechanism built on top of a
-proof-of-work (PoW) blockchain to resolve usernames to their current keys. The
-blockchain encodes a journal that is used to construct an LDAP-like public key
-database of a volume's users. By keeping the database synchronized with the
-blockchain, each gateway independently discovers each user's latest public
-key.
+Syndicate addresses this problem by leveraging a self-sovereign identity system.
+At the very least, a self-sovereign identity system gives users globally-unique, human-meaningful
+names that are owned by a cryptographic key pair.  The Syndicate implementation
+relies on Blockstack, for example, but supports a plug-in framework to interface
+with any identity system.
 
 
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.47\textwidth]{figures/blockstack-overview}
 \caption{\it
-Overview of how Blockstack constructs the key database from a public blockchain
+Overview of how Blockstack, a self-sovereign identity system, constructs the key database from a public blockchain
 for a user's gateways.
    }
 \label{fig:cert-graph}
 \end{figure}
 
-The subsystem that constructs this database is a stand-alone system called
-Blockstack. It leverages an existing, public blockchain, which serves as its
-tamper-resistant log of key registrations, revocations, key changes, and profile
-data. Each user runs a Blockstack server for their gateways to generate the
-current key database, which gateways query to look up public keys. Gateways
-discover the current list of a volume's usernames by querying the profile
-data of the volume owner's name in Blockstack.
-
-
 This approach to key distribution ensures that each gateway receives the same
 set of user public keys without introducing central points of trust. This is
-because of how PoW blockchains work: given two instances of the PoW blockchain,
+because practical self-sovereign identity systems rely on proof-of-work
+blockchains to construct a tamper-resistent log of key updates for a particular
+name.
+
+The security of Syndicate is thus underpinned by the practical difficulty of attacking a
+PoW blockchain: given two instances of the PoW blockchain,
 a peer accepts the one with the most cumulative work (i.e. the
-``heaviest'' chain). As long as no set of peers controls over 50\% of the
+``heaviest'' chain)~\cite{bitcoin-textbook}. As long as no set of peers controls over 50\% of the
 compute power used to construct the blockchain, and as long as no blockchain
-peer partitions last indefinitely, a blockchain peer will discover with high
-probability the heaviest blockchain. This in turn means that each Blockstack
-server will independently construct the same public key database.
+peers remain partitioned indefinitely, then with extremely high probability two
+mutually distrustful peers will independently agree on the heaviest blockchain
+simply by inspecting each candidate's proof-of-work.  This in turn means
+that two instances of the sovereign identity system that take the same view of
+the blockchain will independently construct the same name-to-public-key
+mappings, all without requiring users to manage private key revocation
+certificates or public key discovery!
 
-
-Blockstack currently uses the Bitcoin blockchain, but is portable to any
-blockchain and can migrate state from one blockchain to another in the event
-that either of the two security assumptions no longer hold (this has already
-happened once). A detailed discussion of Blockstack's design,
-implementation, and migration protocols can be found in~\cite{blockstack}.
+A detailed discussion of how a production self-sovereign identity system
+works can be found in~\cite{blockstack}.
 
 \subsection{Scaling through Aggregation}
 
@@ -329,40 +324,63 @@ storage concerns into reusable components.
 \subsection{Fault Tolernace}
 
 Beyond assuming that public-key cryptography is infeasible to crack, we assume
-that the blockchain is available, and that gateways exhibit fail-stop behavior.
-Gateways in a volume already trust one another, so this fail-stop assumption is
+that the self-sovereign identity system is available, and that gateways exhibit
+fail-stop behavior when it is not.  Gateways in the same volume already trust one another
+with a given set of capabilities, so this fail-stop assumption is
 reasonable. The blockchain that Blockstack relies on (Bitcoin) has over 5,000
-known replicas across the world, so it is likely to be available.
+known replicas across the world~\cite{coindance} and is the most secure in terms
+of money sunk into keeping it safe~\cite{coinmarketcap}, so it is likely to be available.
 
-Under these assumptions, gateway can tolerate Byzantine faults in services and
-the MS. Services may fail or change behavior at any point in time, but gateways
-will fail-stop if the cannot serve valid, fresh application data.
+Under these assumptions, gateways can translate arbitrary service failures
+(including misbehavior) into fail-stop conditions, preventing users from
+unknowingly relying on an unreliable component.  This is because gateways never
+process unauthenticated or stale application data.
 
 The MS holds soft state, so if it goes offline or misbehaves, no data is lost.
-Gateways mask Byzantine failures, but allow the user-supplied I/O logic to
-handle fail-stop behavior. If the I/O logic is written such that it does not
-need the MS to publish and discover manifests, then they can
+Gateways detect equivocation, but allow the
+user-supplied I/O logic to determine how to handle it.  If the I/O logic is written such that it does not
+need the MS to publish and discover manifests, then gateways can
 continue to process I/O flows without it.
 
-Syndicate tolerates dataset unavailability if the data has already been proven
-to exist. UGs periodically ask AGs to re-validate their views of the dataset.
+Syndicate tolerates temporary partitions between the AG and its dataset
+if the data has already been proven to exist. UGs periodically ask AGs
+to re-validate their views of the dataset.
 This way, the AG can deduce whether or not its view is out-of-sync, and
 synchronize the view before responding to the UG.
 
 Syndicate tolerates failures in individual RGs and back-end storage providers by
 having a UG query each RG in the volume when pulling chunks.  If all services
-and RGs are offline or serving stale or invalid data, then the UG blocks until
-they come online again. If all services permanently fail, then data loss is
+and RGs are offline or misbehaving, then the UG blocks until
+at least one comes online again. If all services and RGs permanently fail, then data loss is
 unavoidable.
 
 A file's coordinator can crash or become partitioned from other gateways.
-The user makes the choice as to whether or not the file becomes unavailable
-in this failure mode. If not, then other coordinate-capable gateways will
-automatically race to become the coordinator if they cannot contact
+The user's I/O logic makes the choice as to whether or not the file becomes unavailable
+in this failure mode.  If not, then other coordinator-capable gateways will
+automatically race to become the new coordinator if they cannot contact
 the current coordinator.  The change-coordinator requests are serialized
 through the MS, so at most one change-coordinator request succeeds (and all
-losers learn the new coordinator). The UG offers users a
-``chcoord()'' method on its control plane to allow the user or application
+losers learn the new coordinator).
+
+There is one pathological case to consider where two sets of gateways are
+partitioned, and one gateway in each set believes it is the file's coordinator.
+In this scenario, the users are also partitioned from their gateways, and the MS
+equivocates between both groups about who is the real coordinator, potentially
+enabling both gateways to process conflicting I/O flows.
+
+Irreconcilable write histories can only occur in this scenario if the consistency model
+created by the user's data-processing logic is already weak enough to allow 
+write-processing when less than a majority of gateways are available.
+This means that the consistency model already defines a way to resolve divergent
+writes like these, irrespective of it's use in Syndicate.
+
+Syndicate help detects potential divergences like this via an asynchronous heartbeat
+gossip protocol.  If a gateway does not receive a fresh heartbeat for another gateway after
+a timeout, it assumes that it is unavailable and acts accordintly.
+
+The UG offers users a
+\texttt{chcoord()} method on its control plane to allow the user or application
 to proactively shift coordination responsibility around the volume's
-gateways.
+gateways.  A gateway's epoch value is affected by a \texttt{chcoord()}, so other
+gateways will process it before handling its next I/O flow.
 
