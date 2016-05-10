@@ -41,7 +41,7 @@ In particular, 1-to-$N$ and $N$-to-1 flow transformations have proven useful in
 practice.  For example, in our social media alternative, Bob's RG
 converts a single write I/O flow into $N$ I/O flows, each one of which
 contains an erasure code to replicate.  Bob's RG may push these flows directly
-to cloud storage, or even to other downstream RGs for subsequent processing.
+to cloud storage, or even to other downstream RGs he owns for subsequent processing.
 
 This also allows Bob to change the view of his Facebook-hosted data via his UG.
 His UG reads his data from his AG, and applies the write by saving only the delta.
