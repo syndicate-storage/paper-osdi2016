@@ -12,15 +12,22 @@ changes.
 In scientific computing, sites generate and host petabytes of data and make it
 available via multiple legacy storage systems.  These systems are organized
 into inter-site federations to facilitate collaboration, but each site defines
-its own curation policies in terms their storage systems' behaviors. Due
-to the sensitivity and quantity of data, it is undesirable to host data with 3rd
-parties like commodity cloud storage. Nevertheless, the data must be transferred
-between sites, since experiments rely on non-outsourceable resources like
-supercomputers.
+its own curation policies in terms their storage systems' behaviors.  Due
+to policy complexity (including legal regimes) and due to the sheer size
+of the data, it is undesirable to host authoritative copies in 3rd
+party cloud storage providers.  Moreover, site-local scientists generate the
+site's data and expect to access it frequently, so it makes sense to
+keep data on-site to enhance performance for them.
+
 %it's not clear the reasons you give are why data isn't hosted in the cloud
 %the economics make it easier to buy hardware than pay a provider (NSF)
 %not that you want to go down this rat hole.
+%
+% took a stab -jcn
 
+Nevertheless, the data must be transferred
+between sites, since experiments that rely on bespoke resources like
+supercomputers that cannot be moved to where the data is.
 Scientific workflows in systems like Agave~\cite{agave} and iPlant~\cite{iplant}
 implement cross-component storage features of their own in
 order to overcome differences in services and sites.  For example, a
