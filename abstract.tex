@@ -1,28 +1,28 @@
 \begin{abstract}
-   This paper presents a new type of
-   wide-area service called a \textit{storage kernel}.  Unlike
-   wide-area storage systems, a storage kernel offers a user-programmable
-   data-plane, where each user controls how reads and writes affect their
-   data independently of applications.  By doing so, users are able to leverage existing
-   storage services for availability and persistence, and implement arbitrarily
-   complex storage functionality on top of them in a portable manner.
-   This isolates applications from underlying
-   service behavior, makes services functionally interchangeable, and
-   separate applications logic from both storage and user authentication logic.
+This paper presents a new type of
+wide-area service called a \textit{storage kernel}.  Unlike
+wide-area storage systems, a storage kernel offers a user-programmable
+data-plane, where each user controls how reads and writes affect their
+data independently of applications.  By doing so, users are able to leverage existing
+storage services for availability and persistence, and implement arbitrarily
+complex storage functionality on top of them in a portable manner.
+This isolates applications from underlying
+service behavior, makes services functionally interchangeable, and
+separate applications logic from both storage and user authentication logic.
 
-   The purpose of a storage kernel is to facilitate the construction of
-   wide-area applications that keep their state on untrusted user storage, while remaining
-   agnostic to their implementations.  This not only puts users back in control
-   of their data, but also reduces application complexity--in some cases,
-   obviating the need for application-specific servers entirely.
-   
-   To validate the concept, we present a prototype storage kernel called
-   Syndicate, which uses a sovereign identity system to
-   implement a runtime for these applications without introducing a single point of trust.
-   We show that Syndicate enables the construction of three non-trivial wide-area
-   applications using freely-available cloud storage services.  Syndicate does
-   so with acceptable performance overhead, while only requiring a small amount
-   amount of reusable storage logic written in Python.
-   
+The purpose of a storage kernel is to facilitate the construction of
+wide-area applications that keep their state on untrusted user storage, while remaining
+agnostic to their implementations.  This not only puts users back in control
+of their data, but also reduces application complexity--in some cases,
+obviating the need for application-specific servers entirely.
+
+To validate the concept, we present a prototype storage kernel called
+Waskern, which uses a sovereign identity system to
+implement a runtime for these applications without introducing a single point of trust.
+We show that Waskern enables the construction of three non-trivial wide-area
+applications using freely-available cloud storage services.  Waskern does
+so with acceptable performance overhead, while only requiring a small
+amount of reusable storage logic written in Python.
+
 \end{abstract}
 

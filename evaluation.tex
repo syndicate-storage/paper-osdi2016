@@ -8,44 +8,91 @@ encode user-specific storage features.
 \subsection{Data-plane Overhead}
 
 
+
 \subsection{Code Overhead}
 
-We created three applications with non-trivial storage features on top of
-Syndicate. The first is a wide-area scientific data volume manager that spans
-multiple administrative domains. The storage functional requirements are that
+To validate Waskern's userfulness, we used it to create three non-trival
+applications, including one that does not need servers to remain available to
+users.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/science-cloud}
+\caption{\it Application 1: scientific storage.  A computing site gives users a
+   space to run publicly-routable RGs and AGs to interface with their storage
+   and existing datasets, and offers them a private CDN to enhance data
+   availability.  To reduce the barriers to entry, the site could manage the
+   RGs, AGs, and their storage logic on behalf of users, and simply bill them
+   for their data consumed.  The automount client daemon (\texttt{amd}) manages
+   each host's gateways.}
+\label{fig:science-cloud}
+\end{figure}
+
+
+The first is a wide-area scientific data volume manager that spans
+multiple administrative domains (Figure~\ref{fig:science-cloud}). The storage requirements are that
 data is replicated to Amazon S3, and must be encrypted at rest and in transit.
 Frequently request data must be cached in a private, shared CDN. The application
 itself is concerned with translating user requests via a Web UI into requests to
 the automount clients running on the user's VMs. The RG logic required to
-implement this system is only ... lines of Python (to interface with S3) and the
-UG logic is only XXX lines (to interface with the CDN and encrypt data).
+implement this system is only 150 lines of Python (to interface with S3) and the
+UG logic is only 300 lines (to interface with the CDN and encrypt data).
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/secure-mail}
+\caption{\it Application 2: end-to-end secure webmail. Alice and Bob store
+   signed encrypted messages to one another on their own volumes, and use a
+   shared self-sovereign identity service to discover each other's public keys.
+   They rely on the legacy SMTP network to inform one another when they have new
+   mail.}
+\label{fig:secure-mail}
+\end{figure}
 
 The second application implements PGP email without requiring users to interact
-with PGP keys. To users, the system looks like a webmail. The application is
-local HTTP proxy that serves the web application, and uses a UG to store the
+with PGP keys (Figure~\ref{fig:secure-mail}) or run their own mail servers.
+To users, the system looks like a webmail. The application is
+local HTTP proxy that serves the web application, and contains a UG to store the
 inbox and outgoing mail in the user's volume. It uses the legacy SMTP
-network to announce message creation. This way, Alice's proxy will be
+network to announce messages to recipients. This way, Bob's proxy will be
 notified (via a signed SMTP message) that there is an encrypted message in
-Bob's volume waiting for her, and will automatically fetch, authenticate,
-decrypt, and serve it to her in her browser. The RG logic required to implement
-this system is identical to that in the first application. The UG logic is only
-XXX lines. It uses Blockstack to discover Alice's and Bob's keys,
-encrypts the message to the recipients, and propagates the SMTP message to Bob
-as when Alice writes to her outbox directory.
+Alice's volume waiting for him, and will automatically fetch, authenticate,
+decrypt, and serve it to him in his browser. The RG logic required to implement
+this system is identical to that in the first application. The UG logic is about
+1000 lines, to both interface with SMTP servers and additionally encrypt the
+path to the message in the volume. It uses a self-sovereign identity system to discover Alice's and
+Bob's keys.
+
+\begin{figure}[t!]
+\centering
+\includegraphics[width=0.5\textwidth]{figures/irods-hadoop}
+\caption{\it Application 3: science site integrations.  Waskern enables external
+   gateways to discover files in an intra-site iRODS deployment, where the
+   site's AG serves to authenticate external requests on its behalf and serve
+   data through a private CDN.  The private CDN removes the need to manually
+   stage data at other sites, since hot data will be automatically cached
+   locally.  The UG links remote Hadoop jobs to AG-served data, and provides
+   Hadoop with a way to replicate results back to the original archive.}
+\label{fig:irods-hadoop}
+\end{figure}
 
 The third application is a scientific storage service for making existing iRODS
 deployments available to remote Hadoop jobs, without requiring manual data
-staging and transfer. This application is an extension of the first application,
+staging and transfers (Figure~\ref{fig:irods-hadoop}). This application is an extension of the first application,
 but it additionally uses an AG to import iRODS data into a volume. The private
 CDN automatically stages data close to the remote Hadoop nodes, and remote UGs
 ensure that any communication failures between the AG and iRODS get resolved
 before a read completes. The remote Hadoop jobs copy back their new data into a
 separate iRODS home directory via a local RG. The UG code in this application is
-the same as in the first, but the AG code is XXX lines of Python and the RG
-code is XXX.
+the same as in the first, but the AG code is about 1500 lines of Python and the RG
+code is about 1000 lines.
+
+We are in the process of making these applications production-ready.  The
+science-oriented applications are slated to link several universities' data repositories, and
+the second application has already been demonstrated publicly and has received venture capital funding.
 
 % [note by illyoung: The same UG logic as in the first is used but I/O interface
 % is exposed via RESTful using Node.js. Also, an application that translates
-% Hadoop filesystem operations to the Syndicate UG operations is implemented in
+% Hadoop filesystem operations to the Waskern UG operations is implemented in
 % Java.]
 

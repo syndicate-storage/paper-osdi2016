@@ -1,15 +1,15 @@
 \section{Design}
 \label{sec:design}
 
-Syndicate is a file-oriented storage kernel that lets users define how reads and
-writes affect their files.  As far as applications are concerned, Syndicate looks
+Waskern is a file-oriented storage kernel that lets users define how reads and
+writes affect their files.  As far as applications are concerned, Waskern looks
 and behaves like a set of globally-available volumes, each of which contains a
 mountable filesystem. Each user owns one or more volumes, and owns zero or more
 files within volumes they can access.  A volume's file and structure is replicated across
 multiple services, and its metadata and directory hierarchy is cached in a
 scalable but untrusted PaaS provider.
 
-In Syndicate, a volume is a unit trust domain, and a user is a unit
+In Waskern, a volume is a unit trust domain, and a user is a unit
 administrative domain that encompases one or more devices.  A volume has an
 owner who has volume-level control over who may read and write files, and who
 may process I/O flows. Volume users trust the volume owner to make appropriate
@@ -21,16 +21,17 @@ devices.
 \centering
 \includegraphics[width=0.47\textwidth]{figures/app-overview}
 \caption{\it
-Syndicate gives each user an ``always-on'' data store that programmatically
+Waskern gives each user an ``always-on'' data store that programmatically
 hosts and manages data according to user-specified logic.  Applications no
-longer need to host data:  application clients access a user's data directly from storage,
-and application servers obtain read-permission from the user and
-index publicly-available data to enable data discovery.}
+longer need to host data:  their clients access a user's data directly from storage,
+and their servers obtain read-permission from the user and
+index publicly-available data to enable data discovery.  Servers are optional if
+   discovery is not a concern.}
 \label{fig:app-overview}
 \end{figure}
 
 This organization offers a simple, powerful, and cost-effective way to build multi-user
-applications. For example, consider a Syndicate-powered social media competitor
+applications. For example, consider a Waskern-powered social media competitor
 to Facebook. To use the application, Alice and Bob each create a volume for
 hosting their social data, and they give the application read-only access. Users
 make things like photos and posts available by writing them to their volumes,
@@ -58,7 +59,7 @@ interacts with the underlying services.
 
 \subsection{Files}
 
-Syndicate processes an I/O flow (a read or a write) in terms of immutable
+Waskern processes an I/O flow (a read or a write) in terms of immutable
 chunks. A chunk has a globally unique identifier, and is either a block or a
 manifest. A block is a fixed-size opaque blob of data, and a manifest represents
 a snapshot of the file's data in between two consecutive writes (e.g. like
@@ -66,7 +67,7 @@ an inode structure). Each file has a latest manifest that identifies its current
 state.
 
 This representation enables users to reason about a file's consistency and
-durability independently of the underlying services. To do so, Syndicate defines
+durability independently of the underlying services. To do so, Waskern defines
 data plane programmability in terms of five discrete stages, which are invoked
 in reaction to application-initiated reads and writes:
 
@@ -92,17 +93,17 @@ can be cached anywhere to improve performance without affecting correctness.
 
 \subsection{Gateways}
 
-Syndicate grants users control over a set of execution contexts called
+Waskern grants users control over a set of execution contexts called
 \textit{gateways}. Gateways are stand-alone,
 asynchronous processors that run application-given data-plane processing logic
 on reads and writes (achieving universality). Gateways can scale down to a
 single process and scale up to multiple data centers (achieving uniformity).
 
-Each user owns one or more gateways in a volume. Data enters Syndicate from
+Each user owns one or more gateways in a volume. Data enters Waskern from
 users via an application or via an existing data source of the user's choice
 (e.g. websites, cloud storage). Data gets stored into existing storage
 providers, and is ultimately served back to users via a gateway or an
-application that access it on their behalf. As such, Syndicate defines three
+application that access it on their behalf. As such, Waskern defines three
 types of gateway:
 
 \textbf{Acquisition Gateway (AG)}: AGs map a 3rd party dataset into a volume as a read-only
@@ -156,14 +157,14 @@ Facebook data to make it available.
 \subsection{Coordination}
 
 Gateways coordinate I/O flows via a stateful control-plane, through which
-Syndicate achieves its programmability, dyanmicity, and extensibility
+Waskern achieves its programmability, dyanmicity, and extensibility
 properties. The control-plane state for each gateway ncludes its I/O logic,
 owner, public key, host, port, and volume-given capabilities, as well as the
-list of users and gateways that make up a volume. Syndicate allows these fields
+list of users and gateways that make up a volume. Waskern allows these fields
 to be set at runtime, and ensures that a user's or volume owner's state
 changes are atomic with respect to the I/O flows.
 
-To implement its control plane, Syndicate assigns each file a coordinator
+To implement its control plane, Waskern assigns each file a coordinator
 gateway. The coordinator gateway decides when an I/O flow for that file starts
 and finishes, and maintains the file's authoritative manifest. The specifics
 of how the manifest is externalized are handled by the user-supplied publish I/O
@@ -207,21 +208,21 @@ view of one another. Otherwise, the flow is aborted, and the stale gateways
 refresh their state.
 
 
-By maintaining the certificate graph, Syndicate reduces the problem of
+By maintaining the certificate graph, Waskern reduces the problem of
 guaranteeing end-to-end message authenticity in both its data and control planes
 to ensuring that each gateway knows each user's current public key. Once a
 gateway knows all its volume's users' public keys, it can verify the
 authenticity of every other gateway's public key, as well as its own public
 key and its I/O logic. Then, it can authenticate messages from other gateways,
 authenticate data from services, and determine whether or not the gateway has a
-stale view. The key novelty of Syndicate, discussed in the next section, is that
+stale view. The key novelty of Waskern, discussed in the next section, is that
 it ensures that gateways automatically discover the users' current public
 keys without relying on a single point of trust.
 
 \subsection{Peer Discovery}
 
 Gateways discover each other via shared cloud-hosted service called the Metadata
-Service (MS). The MS is the rough analog of an SDN controller in Syndicate. It
+Service (MS). The MS is the rough analog of an SDN controller in Waskern. It
 runs in a publicly-routable cloud platform provider, and maintains an index of
 volume, file, gateway, and user metadata. The MS is not part of the trusted
 computing base--the gateways sign and verify all metadata uploaded to it, and
@@ -253,10 +254,10 @@ is a manual, tedious process that is hard to scale, since it introduces a
 central point of trust (like a sysadmin) and it leaves key revocation and
 key-regeneration to users.
 
-Syndicate addresses this problem by leveraging a self-sovereign identity system.
+Waskern addresses this problem by leveraging a self-sovereign identity system.
 At the very least, a self-sovereign identity system gives users globally-unique, human-meaningful
-names that are owned by a cryptographic key pair.  The Syndicate implementation
-relies on Blockstack, for example, but supports a plug-in framework to interface
+names that are owned by a cryptographic key pair.  The Waskern implementation
+relies on a specific self-sovereign identity system by default, but supports a plug-in framework to interface
 with any identity system.
 
 
@@ -264,8 +265,10 @@ with any identity system.
 \centering
 \includegraphics[width=0.47\textwidth]{figures/blockstack-overview}
 \caption{\it
-Overview of how Blockstack, a self-sovereign identity system, constructs the key database from a public blockchain
-for a user's gateways.
+   Overview of how a self-sovereign identity system (SSIS) works.  By reading a
+   database journal embedded in a proof-of-work blockchain, each SISS server
+   will construct the same database independently.  This gives each
+   users the current public keys for all other users.
    }
 \label{fig:cert-graph}
 \end{figure}
@@ -276,7 +279,7 @@ because practical self-sovereign identity systems rely on proof-of-work
 blockchains to construct a tamper-resistent log of key updates for a particular
 name.
 
-The security of Syndicate is thus underpinned by the practical difficulty of attacking a
+The security of Waskern is thus underpinned by the practical difficulty of attacking a
 PoW blockchain: given two instances of the PoW blockchain,
 a peer accepts the one with the most cumulative work (i.e. the
 ``heaviest'' chain)~\cite{bitcoin-textbook}. As long as no set of peers controls over 50\% of the
@@ -294,7 +297,7 @@ works can be found in~\cite{blockstack}.
 
 \subsection{Scaling through Aggregation}
 
-Syndicate scales in both the quantity of data and the bandwidth it offers by
+Waskern scales in both the quantity of data and the bandwidth it offers by
 aggregating underlying services and individual gateways. RGs scale
 horizontally--a single RG can be comprised of many concurrent processes
 spread across many hosts, but aggregated behind a single host/port via a
@@ -327,7 +330,7 @@ Beyond assuming that public-key cryptography is infeasible to crack, we assume
 that the self-sovereign identity system is available, and that gateways exhibit
 fail-stop behavior when it is not.  Gateways in the same volume already trust one another
 with a given set of capabilities, so this fail-stop assumption is
-reasonable. The blockchain that Blockstack relies on (Bitcoin) has over 5,000
+reasonable. The blockchain the default self-sovereign identity system uses (Bitcoin) has over 5,000
 known replicas across the world~\cite{coindance} and is the most secure in terms
 of money sunk into keeping it safe~\cite{coinmarketcap}, so it is likely to be available.
 
@@ -342,13 +345,13 @@ user-supplied I/O logic to determine how to handle it.  If the I/O logic is writ
 need the MS to publish and discover manifests, then gateways can
 continue to process I/O flows without it.
 
-Syndicate tolerates temporary partitions between the AG and its dataset
+Waskern tolerates temporary partitions between the AG and its dataset
 if the data has already been proven to exist. UGs periodically ask AGs
 to re-validate their views of the dataset.
 This way, the AG can deduce whether or not its view is out-of-sync, and
 synchronize the view before responding to the UG.
 
-Syndicate tolerates failures in individual RGs and back-end storage providers by
+Waskern tolerates failures in individual RGs and back-end storage providers by
 having a UG query each RG in the volume when pulling chunks.  If all services
 and RGs are offline or misbehaving, then the UG blocks until
 at least one comes online again. If all services and RGs permanently fail, then data loss is
@@ -372,9 +375,9 @@ Irreconcilable write histories can only occur in this scenario if the consistenc
 created by the user's data-processing logic is already weak enough to allow 
 write-processing when less than a majority of gateways are available.
 This means that the consistency model already defines a way to resolve divergent
-writes like these, irrespective of it's use in Syndicate.
+writes like these, irrespective of it's use in Waskern.
 
-Syndicate help detects potential divergences like this via an asynchronous heartbeat
+Waskern helps detect potential divergences like this via an asynchronous heartbeat
 gossip protocol.  If a gateway does not receive a fresh heartbeat for another gateway after
 a timeout, it assumes that it is unavailable and acts accordintly.
 

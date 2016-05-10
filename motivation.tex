@@ -60,7 +60,7 @@ features not directly offered by the service.  This leads to duplication of
 effort and bugs, and requires each program to be patched to overcome changes in
 a single service.
 
-Syndicate solves this problem by implementing
+Waskern solves this problem by implementing
 storage features as a set of execution contexts that work together to run an 
 application-specified storage features independently of providers.  This gives
 applications a stable but
@@ -95,7 +95,7 @@ domains.
 \textbf{Universal}.  Storage functionality may be stateful and
 Turing-complete, and may run asynchronously from the application.
 
-Syndicate is a proof-of-concept implementation of this kernel. It not only
+Waskern is a proof-of-concept implementation of this kernel. It not only
 allows us to combine existing storage services, but also enables storage
 functionality to decompose into orthogonal, reusable features that
 functionally compose in a pipeline fashion (akin to how UNIX programs

@@ -1,7 +1,7 @@
 \section{Implementation}
 \label{sec:implementation}
 
-Syndicate is a real system, and is implemented in about 30,000 lines of C++ and
+Waskern is a real system, and is implemented in about 30,000 lines of C++ and
 16,000 lines of Python. Its UGs include a FUSE filesystem interface, a suite of
 shell tools, and a RESTful Node.js server. Its RGs come with logic to leverage
 to several cloud storage providers, including Amazon S3, Google Drive, and
@@ -10,7 +10,7 @@ deployments.
 
 \subsection{Operationalization}
 
-To help manage Syndicate at scale, we built an automount service that allows
+To help manage Waskern at scale, we built an automount service that allows
 users to specify a ``provisioning plan'' that describes which volumes and
 gateways should be made available on the hosts they control. The automount client manages the
 details of provisioning, starting and stopping the correct gateways, and polling
@@ -22,5 +22,5 @@ identity service profile.  This means that the automount client only needs to kn
 the username to look up, and guarantees that the client always
 fetches the latest authentic provisioning plan without having to trust it or its
 storage providers.  This is a key usability win, since it reduces the steps to
-deploy Syndicate to installing the relevant packages, and running the single
+deploy Waskern to installing the relevant packages, and running the single
 command to start the automounter.

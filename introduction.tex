@@ -8,7 +8,7 @@ combining existing cloud-hosted services.  While this reduces up-front
 development costs, it is not sustainable in the long run,
 since these services regularly fail, adopt incompatible trust models, and
 unilaterally introduce breaking changes without warning.  This paper
-presents Syndicate, a system that synthesizes custom stable storage
+presents Waskern, a system that synthesizes custom stable storage
 from unstable services by implementing a programmable ``storage kernel'' that spans
 wide-area networks.
 
@@ -39,7 +39,7 @@ it available.  Users would no longer need to exclusively rely on the application
 and developers would no longer need to be responsible for hosting it.
 
 Second, the rise of \textit{self-sovereign identity systems} like
-Blockstack~\cite{blockstack} and Keybase~\cite{keybase} allow users to
+Onename~\cite{onename} and Keybase~\cite{keybase} allow users to
 securely advertise their \textit{current} identity tokens, like public keys, in a
 non-repudiable way.  Crucially, self-sovereign identity systems do not
 require trust in 3rd parties (unlike conventional identity providers)
@@ -51,7 +51,7 @@ but no single principal possesses the computational power required to remove it.
 \begin{figure}[h!]
 \centering
 \includegraphics[width=0.5\textwidth]{figures/kernel}
-\caption{\it As a storage kernel, Syndicate fulfills the same role for wide-area
+\caption{\it As a storage kernel, Waskern fulfills the same role for wide-area
 applications and underlying storage and identity services as an OS kernel does
    for userspace programs, storage hardware, and access control frameworks.}
 \label{fig:kernel}
@@ -75,7 +75,7 @@ Applications that use multiple services today nevertheless each implement and
 kernel-like functionality internally (Section~\ref{sec:motivation}), which motivates us to
 explore designing the storage kernel up front.
 
-State-of-the-art systems like Blockstack~\cite{blockstack},
+State-of-the-art systems like Onename~\cite{onename},
 libcloud~\cite{libcloud}, and Infinit~\cite{infinite} come close to this
 end by implementing a service ``driver'' layer to
 store data across multiple storage providers.  However, this is not
@@ -110,7 +110,11 @@ actions on its own.
 \begin{figure}[t!]
 \centering
 \includegraphics[width=0.5\textwidth]{figures/execution-contexts}
-\caption{\it...}
+\caption{\it Alice's I/O flows pass through
+   multiple exection contexts (ECs) in multiple services before reaching Bob.  Each
+   EC runs its owners' storage logic to process the flow.  By
+   controlling which ECs a flow can pass through, Alice can control how her data
+   will be processed before reaching Bob.}
 \label{fig:execution-contexts}
 \end{figure}
 
@@ -125,13 +129,13 @@ through a dynamic set of storage programs
 while achieving end-to-end authenticity and correct flow-processing in the face
 of system and service churn.
 
-Syndicate is our prototype wide-area storage kernel.  It provides 
+Waskern is our prototype wide-area storage kernel.  It provides 
 users with one or more horizontally-scalable execution contexts, called
 \textit{gateways}, that implement a user-defined data-plane while ensuring
 end-to-end authenticity and correctness in the face of system churn and service
 misbehavior.  Its key novelty is a control-plane protocol
 that leverages a self-sovereign identity system to enable gateways to coordinate in
-the presence of untrusted networks and services.  By doing so, Syndicate allows
+the presence of untrusted networks and services.  By doing so, Waskern allows
 storage programs to compose in a UNIX-y pipeline-like fashion across the wide-area,
 enabling users to synthesize complex storage features from simple
 orthogonal storage programs on top of any storage providers.
@@ -141,6 +145,6 @@ provide more background on blockchains and other state-of-the-art kernel-like sy
 which we build.  In Section~\ref{sec:motivation}, we characterize two
 application domains--scientific storage and SaaS--in which users would
 significantly benefit from having a programmable storage kernel.  We present the
-design of Syndicate in Section~\ref{sec:design}, its implementation in
+design of Waskern in Section~\ref{sec:design}, its implementation in
 Section~\ref{sec:implementation}, and its evaluation in
 Section~\ref{sec:evaluation}.  We conclude in Section~\ref{sec:conclusion}.
