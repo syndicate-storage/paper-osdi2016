@@ -8,6 +8,47 @@ to several cloud storage providers, including Amazon S3, Google Drive, and
 Dropbox. The AGs come with logic to interact with GenBank, M-Lab, and iRODS
 deployments.
 
+\subsection{Standardized Flow Interchange}
+
+An ever-present engineering task in Waskern is to ensure that its components use
+the same data interchange formats and protocols expected by existing services.
+To do so, Waskern uses standard HTTP and URIs to identify and to transport data in both
+the data-plane and control-plane, and its gateways look and behave like standard
+HTTP servers.
+
+Adhering to these standards has yielded several benefits.  For example,
+we enabled a production deployment of Waskern to make
+use of an unmodified instance of the Akamai~\cite{akamai} CDN to enhance read
+availability from RGs and AGs.  URIs to blocks and manifests are
+globally unique and refer to immutable data, so the CDN's cache-eviction
+policies do not affect Waskern's correctness.
+
+This technique is also critical to allowing Waskern to scale horizontally.
+Since URIs are unique and refer to immutable data,
+an RG's back-end data store never needs to address chunk write-conflicts.
+In addition, this technique allows a commodity HTTP or TCP load-balancer to distribute
+chunk requests across a set of AG and RG instances without requiring them to
+coordinate.  In doing so, a logically-single AG or RG can be scaled up to handle
+a scalable number of UGs.
+
+Within Waskern, each I/O flow identifies the flow type, the URI, the manifest, the
+logical byte-range, and the affected chunks of the file.  Waskern gateways compose
+their I/O logic in a UNIX-like pipeline to process a flow, but this
+extra flow information enables more kinds of useful processing models than a linear
+succession of gateways.
+
+In particular, 1-to-$N$ and $N$-to-1 flow transformations have proven useful in
+practice.  For example, in our social media alternative, Bob's RG
+converts a single write I/O flow into $N$ I/O flows, each one of which
+contains an erasure code to replicate.  Bob's RG may push these flows directly
+to cloud storage, or even to other downstream RGs for subsequent processing.
+
+This also allows Bob to change the view of his Facebook-hosted data via his UG.
+His UG reads his data from his AG, and applies the write by saving only the delta.
+Then, the RG Bob gave to Alice will construct an
+$N$-to-1 read flow to consume both Bob's Facebook data from his AG and his delta
+from his RG and merge them into a single read-flow for her UG.
+
 \subsection{Operationalization}
 
 To help manage Waskern at scale, we built an automount service that allows
